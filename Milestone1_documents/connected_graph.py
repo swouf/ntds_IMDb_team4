@@ -55,7 +55,8 @@ def connected_graph(adjacency):
 
     nodeList[0] = 1;
 
-    for i in range(0,nodeList.size):
+    # The algorithm can be optimized by testing the connectivity of all the graph to a single node.
+    for i in range(0,nodeList.size): # To remove and replace by a test of connectivity to 0th element
         for j in range(i+1,nodeList.size):
             #print("i=",i,"j=",j, nodeList[j] ,np.isnan(nodeList[j]))
             if nodeList[i] == 1 and np.isnan(nodeList[j]):
