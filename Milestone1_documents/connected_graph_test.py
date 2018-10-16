@@ -49,5 +49,16 @@ class TestConnectedGraph(unittest.TestCase):
         print("distance between nodes 2 and 4 : ", a)
         self.assertEqual(a, 0)
 
+    def test_5(self):
+        adjacency = np.array([[0,1,1,0,0,0],
+                    [1,0,0,1,0,0],
+                    [1,0,0,0,0,0],
+                    [0,1,0,0,1,0],
+                    [0,0,0,1,0,0],
+                    [0,0,0,0,0,0]], np.int32)
+        #a = cg.breadth_first_search(adjacency, 2,2)
+        #print("")
+        self.assertEqual(cg.connected_graph(adjacency), False)
+
 if __name__ == '__main__':
     unittest.main()

@@ -3,31 +3,53 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import json
 
+################################################################################
+# Code for question 7
+#
+#
+import queue as Q
+
 def breadth_first_search(adjacency, source, destination):
+
+    print("Source : ", source, " Destination : ", destination)
+
+    # Creates a node list with the number nodes contained in the adjacency matrix
     nodeList = adjacency.shape
     nodeList = nodeList[0]
     nodeList = np.full(nodeList, np.nan)
 
-    queue = np.nonzero(adjacency[source,:])
-    queue = np.array(queue[0])
+    # Initialize a queue
+    queueBuffer = Q.SimpleQueue()
 
-    k = 1
+    # Initialize an array containing all the indexes of all the non-zero elements connecting the the 0 node with the others
+    connectedNodesTo0 = np.nonzero(adjacency[source,:])
 
+    # Init the queue
+    for i in np.nditer(connectedNodesTo0):
+        print("i = ",i)
+        queueBuffer.put((i,0))
+
+    # Test the case where source == destination
     if source == destination :
         nodeList[destination] = 0
+        return nodeList[destination]
 
-    while np.isnan(nodeList[destination]):
-        for i in np.nditer(queue) :
-            #print("node = ", i)
-            if np.isnan(nodeList[i]) :
-                nodeList[i] = k
-                tmp = np.nonzero(adjacency[i,:])
-                tmp = np.array(tmp[0])
-                #print(queue, "+" ,tmp)
-                queue = np.concatenate((queue, tmp))
-
-
-        k = k+1
+    # Test each node if they are connected
+    #
+    # 1. Get the node in the queue and the distance from the source of the previous node.
+    # 2. If the node has not been assigned a distance yet, assign it the distance of the previous node + 1.
+    # 3. Get all the connected nodes and put them in the queue.
+    # 4. When there is no more nodes in the queue, exit the loop.
+    #
+    while queueBuffer.empty() == False :
+        node = queueBuffer.get()
+        nodeDist = node [1]
+        node = node[0]
+        if np.isnan(nodeList[node]):
+            nodeList[node] = nodeDist+1
+            tmp = np.nonzero(adjacency[node,:])
+            for j in np.nditer(tmp):
+                queueBuffer.put((j,nodeList[node]))
 
     distance = nodeList[destination]
     return distance
@@ -53,24 +75,17 @@ def connected_graph(adjacency):
     nodeList = nodeList[0]
     nodeList = np.full(nodeList, np.nan)
 
-    nodeList[0] = 1;
+    nodeList[0] = 1
 
-    # The algorithm can be optimized by testing the connectivity of all the graph to a single node.
-    for i in range(0,nodeList.size): # To remove and replace by a test of connectivity to 0th element
-        for j in range(i+1,nodeList.size):
-            #print("i=",i,"j=",j, nodeList[j] ,np.isnan(nodeList[j]))
-            if nodeList[i] == 1 and np.isnan(nodeList[j]):
-                if np.isnan(breadth_first_search(adjacency,i,j)) == False:
-                    nodeList[j] = 1
-                else:
-                    nodeList[j] = 0
+    connected = True
 
-    #print(nodeList)
-
-    if np.sum(nodeList) == nodeList.size:
-        connected = True
-    else:
-        connected = False
-
+    for j in range(1,nodeList.size):
+        if nodeList[0] == 1 and np.isnan(nodeList[j]):
+            if np.isnan(breadth_first_search(adjacency,0,j)) == False:
+                nodeList[j] = 1
+            else:
+                nodeList[j] = 0
+                connected = False
+                break
 
     return connected
