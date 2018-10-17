@@ -22,44 +22,40 @@ def compute_shortest_path_lengths(adjacency, source):
     Returns
     -------
     list of ints
-        The length of the shortest path from source to all nodes. Returned list should be of length n_nodes.
+        The length of the shortest path from source to all nodes. Returned list
+        should be of length n_nodes.
     """
 
-    # Creates a node list with the number nodes contained in the adjacency matrix
+    # Creates a node list with the number of nodes contained in the adjacency
+    # matrix
     nodeList = adjacency.shape
     nodeList = nodeList[0]
     nodeList = np.full(nodeList, np.nan)
 
-    nodeDist = 0
+    # Set the distance of the source node to 0
+    nodeList[source] = 0
 
     # Initialize a queue
     queueBuffer = Q.SimpleQueue()
 
-    # Initialize an array containing all the indexes of all the non-zero elements connecting the the 0 node with the others
+    # Initialize an array containing all the indexes of all the non-zero
+    # elements connecting the the 0 node with the others
     connectedNodesToSource = np.nonzero(adjacency[source,:])
 
-    # Init the queue
-    nodeDist = nodeDist+1
+    # Init the queue and set the distances of the adjacent nodes
+    # (to the source) to 1
     for i in np.nditer(connectedNodesToSource):
-        nodeList[i] = nodeDist
+        nodeList[i] = 1
         queueBuffer.put(i)
 
-    # Test the case where source == destination
-
-    # Test each node if they are connected
-    #
-    # 1. Get the node in the queue and the distance from the source of the previous node.
-    # 2. If the node has not been assigned a distance yet, assign it the distance of the previous node + 1.
-    # 3. Get all the connected nodes and put them in the queue.
-    # 4. When there is no more nodes in the queue, exit the loop.
-    #
+    # Iterate over the nodes and calculate their distance
     while queueBuffer.empty() == False :
-        nodeDist = nodeDist+1
-        node = queueBuffer.get()
-        tmp = np.nonzero(adjacency[node,:])
-        for j in np.nditer(tmp):
-            if np.isnan(nodeList[j]):
-                nodeList[j] = nodeDist
-                queueBuffer.put(j)
+        node = queueBuffer.get() # Get the node in the queue
+        tmp = np.nonzero(adjacency[node,:]) # Get a list of the connected nodes
+        for j in np.nditer(tmp): # Iterate over the connected nodes
+            if np.isnan(nodeList[j]): # Eliminate the ones that are already been processed
+                nodeList[j] = nodeList[node]+1 # Add, for each node, their distance to the source node using the distance of the parent node
+                queueBuffer.put(j) # Place it in the queue
 
-    return nodeList
+    shortest_path_lengths = np.array(nodeList, np.int32)
+    return shortest_path_lengths
