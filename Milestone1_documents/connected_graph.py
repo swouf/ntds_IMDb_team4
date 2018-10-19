@@ -2,11 +2,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import json
-
-################################################################################
-# Code for question 7
-#
-#
 import queue as Q
 
 def breadth_first_search(adjacency, source, destination):
@@ -55,8 +50,10 @@ def breadth_first_search(adjacency, source, destination):
     return distance
 
 
-
-
+################################################################################
+# Code for question 7
+#
+#
 def connected_graph(adjacency):
     """Determines whether a graph is connected.
 
@@ -95,17 +92,7 @@ def connected_graph(adjacency):
     # 3. Get all the connected nodes and put them in the queue.
     # 4. When there is no more nodes in the queue, exit the loop.
     #
-
-    n = 0
-    m = 0
-    print(nodeList.size)
-
     while queueBuffer.empty() == False :
-        n = n+1
-        if n >= 10000:
-            n = 0
-            print("Number of connected nodes : ", np.nansum(nodeList))
-
         node = queueBuffer.get()
         tmp = np.nonzero(adjacency[node,:])
         for j in np.nditer(tmp):
@@ -115,9 +102,6 @@ def connected_graph(adjacency):
 
     nbOfConnectedNodes = np.nansum(nodeList)
     nbOfExpectedConnectedNodes = nodeList.size
-
-    print("nbOfConnectedNodes = ", nbOfConnectedNodes)
-    print("nbOfExpectedConnectedNodes = ", nbOfExpectedConnectedNodes)
 
     if nbOfConnectedNodes == nbOfExpectedConnectedNodes :
         connected = True

@@ -2,13 +2,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import json
+import queue as Q
 
 ################################################################################
 # Code for question 9
 #
 #
-import queue as Q
-
 def compute_shortest_path_lengths(adjacency, source):
     """Compute the shortest path length between a source node and all nodes.
 
