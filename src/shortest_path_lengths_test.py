@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import shortest_path_lengths as spl
 
-class TestConnectedGraph(unittest.TestCase):
+class TestShortPathsLengths(unittest.TestCase):
 
     def setUp(self):
         pass

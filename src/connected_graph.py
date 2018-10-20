@@ -6,8 +6,6 @@ import queue as Q
 
 def breadth_first_search(adjacency, source, destination):
 
-    #print("Source : ", source, " Destination : ", destination)
-
     # Creates a node list with the number nodes contained in the adjacency matrix
     nodeList = adjacency.shape
     nodeList = nodeList[0]
