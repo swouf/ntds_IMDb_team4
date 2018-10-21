@@ -1,39 +1,64 @@
-#find_components(adjacency)
-
-def reshape_adjacency(source_index,newNode,adjacency):
-
-    for j in range(0,adjacency.shape[0]):
-        if j!=newNode or j not in source_index:
-            #Delete all the row that are not in examened
-            reshapedAdjacency=np.delete(adjacency ,j, axis=0)
-            #Delete all the column that are not  examened
-            reshapedAdjacency=np.delete(reshapedAdjacency ,j, axis=1)
-      
-    return reshapedAdjacency
-
 def find_components(adjacency):
+    """Find the connected components of a graph.
 
-   #initialisation
+    Parameters
+    ----------
+    adjacency: numpy array
+        The (weighted) adjacency matrix of a graph.
 
-    nodeList = np.full(adjacency.shape[0],0)
-   
-    newComponent=0
-    components= np.empty(nodeList.size)
-    components.fill(np.nan)
-    tmp = []
-   
-    while np.nonzero(nodeList) and (newComponent<nodeList.size):
-        for i in range(0,nodeList.size):
-            tmp=reshape_adjacency(tmp,i,adjacency)
-            if connected_graph(tmp)==true and nodeList[i]==0:
-                components[newComponent]=append(components[newComponent],i)
-                nodeList[i]=1
-      
-    newCoumponent=+1
+    Returns
+    -------
+    list of numpy arrays
+        A list of adjacency matrices, one per connected component.
+    """
+    #initializing the array used to store the indices of nodes in each connected component
+    connectedIndices = np.zeros((adjacency.shape[0],adjacency.shape[0]))
 
-#remove all the nan elements in components
-    components = components[numpy.logical_not(numpy.isnan(x))]
-    return components
+    #array used to keep track of the visited nodes (NaN = not visited):
+    nodeList = np.full(adjacency.shape[0], np.nan)
 
-components = find_components(adjacency)
-components
+    #initializing a queue to store connected nodes
+    queueBuffer = Q.Queue()
+
+
+
+    for i in range(adjacency.shape[0]):
+        if np.isnan(nodeList[i]):
+            #if the node has no connections to the other nodes
+            if sum(adjacency[i,:]) == 0:
+                connectedIndices[i,i] = 1
+                nodeList[i] = 1
+            else:
+                #initializing the connections of node i
+                connectionsToI = np.nonzero(adjacency[i,:])
+
+                #We will add to queue the nodes connected to the first not visited (=NaN) node in nodeList
+                for k in np.nditer(connectionsToI):
+                    queueBuffer.put(k)
+
+                #extracting all the nodes that have a path to node i
+                while queueBuffer.empty() == False:
+                    node = queueBuffer.get()
+                    tmp = np.nonzero(adjacency[node,:])
+                    for j in np.nditer(tmp):
+                        if np.isnan(nodeList[j]):
+                            nodeList[j] = 1
+                            queueBuffer.put(j)
+
+                    if i == 0:
+                        connectedIndices[i,:]=nodeList
+                    else:
+                        connectedIndices[i,:]=nodeList-np.nansum(connectedIndices, axis=0)
+
+    #converting NaN values to zeros:
+    connectedIndices=np.nan_to_num(connectedIndices)
+
+    #deleting zero lines:
+    connectedIndices = connectedIndices[~(connectedIndices==0).all(1)]
+
+    #Now let's build a 3D matrix with the adjecency matrices of each connected componnent
+
+    n_components = connectedIndices.shape[0] #number of total connected components, including isolated nodes
+    #components = np.zeros((n_components,adjacency.shape[0],adjacency.shape[0]))
+
+    return connectedIndices
