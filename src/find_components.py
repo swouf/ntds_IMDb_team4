@@ -8,11 +8,7 @@ def reshape_adjacency(source_index,newNode,adjacency):
             reshapedAdjacency=np.delete(adjacency ,j, axis=0)
             #Delete all the column that are not  examened
             reshapedAdjacency=np.delete(reshapedAdjacency ,j, axis=1)
-            break
-    
-    #Delete all the row that are not in the connected 
-    reshapedAdjacency=np.delete(adjacency , j,0)
-
+      
     return reshapedAdjacency
 
 def find_components(adjacency):
@@ -32,9 +28,7 @@ def find_components(adjacency):
             if connected_graph(tmp)==true and nodeList[i]==0:
                 components[newComponent]=append(components[newComponent],i)
                 nodeList[i]=1
-            
-        
-    
+      
     newCoumponent=+1
 
 #remove all the nan elements in components
