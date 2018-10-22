@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import json
 import queue as Q
+import logging
 
 ################################################################################
 # Code for question 9
@@ -41,11 +42,17 @@ def compute_shortest_path_lengths(adjacency, source):
     # elements connecting the the 0 node with the others
     connectedNodesToSource = np.nonzero(adjacency[source,:])
 
+    logging.debug(f'These nodes are connected to {source} : {connectedNodesToSource[0]}')
+
     # Init the queue and set the distances of the adjacent nodes
     # (to the source) to 1
-    for i in np.nditer(connectedNodesToSource):
-        nodeList[i] = 1
-        queueBuffer.put(i)
+    if connectedNodesToSource[0].size != 0:
+        for i in np.nditer(connectedNodesToSource):
+            nodeList[i] = 1
+            queueBuffer.put(i)
+    else:
+        logging.warning(f'There is no node connected to {source}')
+        return nodeList
 
     # Iterate over the nodes and calculate their distance
     while queueBuffer.empty() == False :

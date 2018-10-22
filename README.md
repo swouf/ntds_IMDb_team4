@@ -8,6 +8,10 @@
 
 ## Milestone 1
 
+####Graph properties :
+
+Diameter = 5
+
 ### Notebook
 
 For the first milestone, the main code is in the jupyter notebook [1_network_properties.ipynb](./1_network_properties.ipynb)

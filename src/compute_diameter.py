@@ -27,7 +27,7 @@ def compute_diameter(adjacency,nbOfSamples=1000):
     if nbOfSamples >= nbOfNodes:
         samples = range(0,nbOfNodes)
     else:
-        samples = np.random.randint(0,nbOfNodes,(1000))
+        samples = np.random.randint(0,nbOfNodes,(nbOfSamples))
 
     logging.info(f'nbOfNodes = {nbOfNodes}')
     logging.info(f'nbOfSamples = {nbOfSamples}')
@@ -35,7 +35,7 @@ def compute_diameter(adjacency,nbOfSamples=1000):
     # Compute the distance for each node in the list between itself and all the
     # other nodes
     for i in samples:
-        logging.debug(f'Testing node {i} and diameter = {diameter}')
+        logging.info(f'Testing node {i} and diameter = {diameter}')
 
         shortest_path_lengths = compute_shortest_path_lengths(adjacency, i)
         maxVal = np.amax(shortest_path_lengths)

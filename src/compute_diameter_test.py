@@ -9,7 +9,7 @@ class TestComputeDiameter(unittest.TestCase):
         pass
 
     def test_1(self):
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
         adjacency = np.array([[0,1,1,0,0,0],
                     [1,0,0,1,0,1],
                     [1,0,0,0,0,0],
@@ -19,23 +19,25 @@ class TestComputeDiameter(unittest.TestCase):
 
         self.assertEqual(cd.compute_diameter(adjacency),4)
 
-    def test_original_graph(self):
+    # def test_original_graph(self):
+    #     adjacency = np.load("./data/adjacency.npy")
+    #
+    #     diameter = cd.compute_diameter(adjacency)
+    #
+    #     print("Final diameter found ! Diameter = ", diameter)
+    #
+    #     self.assertEqual(diameter,5)
+
+    def test_original_graph_1000_samples(self):
         adjacency = np.load("./data/adjacency.npy")
 
-        diameter = cd.compute_diameter(adjacency)
+        adjacency[adjacency <2]=0
+
+        diameter = cd.compute_diameter(adjacency, 1000)
 
         print("Final diameter found ! Diameter = ", diameter)
 
-        self.assertEqual(diameter,10)
-
-    def test_original_graph_100_samples(self):
-        adjacency = np.load("./data/adjacency.npy")
-
-        diameter = cd.compute_diameter(adjacency, 100)
-
-        print("Final diameter found ! Diameter = ", diameter)
-
-        self.assertEqual(diameter,10)
+        self.assertEqual(diameter,5)
 
 if __name__ == '__main__':
     unittest.main()
