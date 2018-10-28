@@ -10,7 +10,7 @@
 
 ####Graph properties :
 
-Diameter = 5
+Diameter = 10
 
 ### Notebook
 

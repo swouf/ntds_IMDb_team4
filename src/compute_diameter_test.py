@@ -18,7 +18,6 @@ class TestComputeDiameter(unittest.TestCase):
                     [0,1,0,0,0,0]], np.int32)
 
         self.assertEqual(cd.compute_diameter(adjacency),4)
-
     # def test_original_graph(self):
     #     adjacency = np.load("./data/adjacency.npy")
     #
