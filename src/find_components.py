@@ -11,6 +11,9 @@ def find_components(adjacency):
     list of numpy arrays
         A list of adjacency matrices, one per connected component.
     """
+    import numpy as np
+    import queue as Q
+
     #initializing the array used to store the indices of nodes in each connected component
     connectedIndices = np.zeros((adjacency.shape[0],adjacency.shape[0]))
 
