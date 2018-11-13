@@ -8,10 +8,6 @@
 
 ## Milestone 1
 
-####Graph properties :
-
-Diameter = 10
-
 ### Notebook
 
 For the first milestone, the main code is in the jupyter notebook [1_network_properties.ipynb](./1_network_properties.ipynb)
@@ -29,3 +25,7 @@ A few test scripts were also developped. To launch one of these script, from the
 + `python ./src/shortest_path_lengths_test.py`
 + `python ./src/network_properties.py` but for this last one, make sure that the adjacency matrix is in the [data](./data) folder under the name `adjacency.npy`
 + `python ./src/compute_diameter_test.py`
+
+## Milestone 2
+
+The purpose of this milestone is to explore various random network models, analyse their properties and compare them to your network. In the first part of the milestone you will implement two random graph models and try to fit them to your network. In this part you are not allowed to use any additional package. In the second part of the milestone you will choose a third random graph model that you think shares some properties with your network. You will be allowed to use additional packages to construct this network, but you must explain your network choice. Finally, make your code as clean as possible, and keep your textual answers short.
