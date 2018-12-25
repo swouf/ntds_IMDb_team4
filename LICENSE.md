@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2019 [Hana Samet](hana.samet@epfl.ch), [Mathieu Shiva](mathieu.shiva@epfl.ch), [Julien Berger](juliengaetan.berger@epfl.ch), [Jérémy Jayet](jeremy.jayet@epfl.ch)
+Copyright (c) 2019 [Hana Samet](mailto:hana.samet@epfl.ch), [Mathieu Shiva](mailto:mathieu.shiva@epfl.ch), [Julien Berger](mailto:juliengaetan.berger@epfl.ch), [Jérémy Jayet](mailto:jeremy.jayet@epfl.ch)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
