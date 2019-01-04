@@ -82,8 +82,10 @@ def make_budget_based_adjacency(movies):
     budgets_filtered.to_csv('./data/budgets.csv');
 
     n_nodes=len(budgets_filtered)
+    
+    logging.info(f'The number of nodes is : {n_nodes}')
 
-    movies_filtered_by_budget = movies.iloc[budgets_filtered.index]
+    movies_filtered_by_budget = movies.loc[budgets_filtered.index]
 
     #Create a matrix of 0 of size (the number of nodes)
     adjacency = np.zeros((n_nodes, n_nodes), dtype=float)
@@ -100,3 +102,12 @@ def make_budget_based_adjacency(movies):
     logging.info(f'Adjacency done !');
 
     return (adjacency,movies_filtered_by_budget)
+
+def filter_movies_by_years(movies, startdate, enddate):
+    #DECADE SELECTION
+    #Select the decade that you want to keep
+    #startdate = pd.to_datetime("2010-01-01").date()
+    #enddate = pd.to_datetime("2020-01-01").date()
+    movies=movies[(movies['release_date'] > startdate) & (movies['release_date'] <enddate)]
+    
+    return movies
