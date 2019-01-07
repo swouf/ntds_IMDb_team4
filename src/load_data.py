@@ -48,7 +48,6 @@ def load_dataframes():
     movies.genres.apply(lambda x: genre.extend(x))
     genre = pd.DataFrame(genre)
     genre['type'] = 'genre'
-
     genre=genre.drop_duplicates('id')
     genre['index']=genre['id']
     genre=genre.set_index('id') 
@@ -58,7 +57,11 @@ def load_dataframes():
     nb_genres=len(list_of_genres)
     list_of_genres_id=pd.Series(range(nb_genres))
     list_of_genres_id
-    movies['genres']=genre['name']
+    gerne_names=genre['name'].copy()
+    #transform the name of the genre into numbers
+    factorized_names = pd.factorize(gerne_names)[0]
+    movies['genres']=factorized_names
+    #movies['genres']=genre['name']
 
     cast = []
     credits.cast.apply(lambda x: cast.extend(x))
@@ -105,10 +108,10 @@ def make_budget_based_adjacency(movies,list_of_genres_id):
 
     movies_filtered_by_budget = movies.loc[budgets_filtered.index]
     
-    movies_genres_names = movies_filtered_by_budget['genres'].copy()
+    movies_genres_id = movies_filtered_by_budget['genres'].copy()
     #d = {ni: indi for indi, ni in enumerate(set(movies_genres_names))}
     #movies_genres_id = [d[ni] for ni in movies_genres_names]
-    movies_genres_id = pd.factorize(movies_genres_names)[0] 
+   #movies_genres_id = pd.factorize(movies_genres_names)[0] 
     #Create a matrix of 0 of size (the number of nodes)
     adjacency = np.zeros((n_nodes, n_nodes), dtype=float)
 
