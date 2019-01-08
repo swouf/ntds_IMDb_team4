@@ -80,17 +80,22 @@ def load_dataframes():
     return (movies, people, list_of_genres_id)
 
 def make_budget_based_adjacency(movies,list_of_genres_id):
-
+    #Ma version (julien), utilise le budget, mais aussi le revenu, et fait la norme euclidienne entre les points.
     import json
     import numpy as np
     import pandas as pd
     import matplotlib.pyplot as plt
     import queue as Q # Package used to manage queues
     import logging
+    from scipy.spatial.distance import pdist, squareform
 
     #(movies, people) = load_dataframes();
 
     budgets = movies['budget'].copy()
+    
+    #try to use euclidian norm on budget+revenue
+    features= movies.loc[:, ['budget', 'revenue']]
+    features_filtered=features[(features != 0).all(1)]
     
     budget_max = budgets.max();
 
@@ -105,28 +110,38 @@ def make_budget_based_adjacency(movies,list_of_genres_id):
     n_nodes=len(budgets_filtered)
     
     logging.info(f'The number of nodes is : {n_nodes}')
-
-    movies_filtered_by_budget = movies.loc[budgets_filtered.index]
+    
+    #version initial de jérémy
+    #movies_filtered_by_budget = movies.loc[budgets_filtered.index]
+    #version de julien
+    movies_filtered_by_budget=movies.loc[features_filtered.index]
     
     movies_genres_id = movies_filtered_by_budget['genres'].copy()
-    #d = {ni: indi for indi, ni in enumerate(set(movies_genres_names))}
-    #movies_genres_id = [d[ni] for ni in movies_genres_names]
-   #movies_genres_id = pd.factorize(movies_genres_names)[0] 
-    #Create a matrix of 0 of size (the number of nodes)
-    adjacency = np.zeros((n_nodes, n_nodes), dtype=float)
 
-    k = 0
-    for movieBudget in enumerate(budgets_filtered):
-        b = budgets_filtered.copy()
-        b = b.apply(lambda x: budget_max-abs(x-movieBudget[1]))
-        #version initiale de jérémy
+    adjacency = np.zeros((n_nodes, n_nodes), dtype=float)
+    
+ #version initiale de jérémy
+    #k = 0
+    #for movieBudget in enumerate(budgets_filtered):
+        #b = budgets_filtered.copy()
+        #b = b.apply(lambda x: budget_max-abs(x-movieBudget[1]))
         #adjacency[:,k] = b.values
-        #version normalisée de julien
-        adjacency[:,k] = b.values/budget_max;
-        k += 1
-        
+        #adjacency[:,k] = b.values/budget_max;
+        #adjacency[:,k]=weights
+        #k += 1
+    
+    #version julien avec norm euclidienne
+    distances = pdist(features_filtered, metric='euclidean')
+    kernel_width = distances.mean()
+    weights = np.exp(-distances**2 / kernel_width**2)
+    adjacency = squareform(weights)
+    plt.hist(weights)
+    plt.title('Distribution of weights')
+    plt.show()
+
+    
     #remove some edges by changing the value here    
-    adjacency[adjacency <0.5]=0 
+    adjacency[adjacency <0.85]=0 
     np.fill_diagonal(adjacency, 0)
     n_edges=int(np.count_nonzero(adjacency)/2)
     
