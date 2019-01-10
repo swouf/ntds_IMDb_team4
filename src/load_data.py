@@ -93,8 +93,8 @@ def make_budget_based_adjacency(movies,list_of_genres_id):
 
     budgets = movies['budget'].copy()
     
-    #try to use euclidian norm on budget+revenue
-    features= movies.loc[:, ['budget', 'genres']]
+    #try to use euclidian norm on budget+other features
+    features= movies.loc[:, ['budget', 'revenue']]
     features_filtered=features[(features != 0).all(1)]
     
     budget_max = budgets.max();
@@ -219,3 +219,56 @@ def filter_movies_by_years(movies, startdate, enddate):
     movies=movies[(movies['release_date'] > startdate) & (movies['release_date'] <enddate)]
     
     return movies
+
+
+def load_features():
+    #load les fatures pour faire une adjacency des movies selon les acteurs
+    import json
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import queue as Q # Package used to manage queues
+    import logging
+    
+    features = pd.read_csv('./data/features_v3.csv')
+    features = features.drop(features.columns[0],axis=1)
+    features = features.drop(columns=['name'],axis=1)
+    #drop useless columns
+    features=features.drop(features.iloc[:, 0:24], axis=1)
+    
+    #transpose to get adjacency of movies
+    features_transposed=features.transpose()
+    
+    return features_transposed
+
+def make_adjacency_from_feature_matrix(features):
+    import json
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import queue as Q # Package used to manage queues
+    import logging  
+    
+    #We calculate the number of nodes   
+    n_nodes=len(features)
+    
+    #Create a matrix of 0 of size equal to the number of nodes
+    adjacency = np.zeros((n_nodes, n_nodes), dtype=int)
+    
+    for idx_mul in range(n_nodes):
+        tmp=features.multiply(features.iloc[idx_mul])
+        #On each row of the adjacency matrix, sum all the values of this temporary array
+        adjacency[idx_mul]=tmp.sum(axis=1)
+    
+    #fill the diagonal of the matrix with zeroes
+    np.fill_diagonal(adjacency, 0)
+    
+    plt.figure(figsize=(10, 10))
+    plt.spy(adjacency, markersize=0.1)
+    plt.title('adjacency matrix')
+    
+    np.save('./data/adjacency_test_movies', adjacency);
+    
+    #find the correct number of minimal actors to link 2 movies
+    adjacency[adjacency <2]=0
+    return adjacency
