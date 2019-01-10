@@ -94,7 +94,7 @@ def make_budget_based_adjacency(movies,list_of_genres_id):
     budgets = movies['budget'].copy()
     
     #try to use euclidian norm on budget+revenue
-    features= movies.loc[:, ['budget', 'revenue']]
+    features= movies.loc[:, ['budget', 'genres']]
     features_filtered=features[(features != 0).all(1)]
     
     budget_max = budgets.max();
@@ -149,6 +149,67 @@ def make_budget_based_adjacency(movies,list_of_genres_id):
     logging.info(f'Adjacency done !');
 
     return (adjacency,movies_filtered_by_budget, movies_genres_id)
+
+
+def make_features_based_adjacency(movies,list_of_genres_id):
+    #Fonction supplémentaire pour tester différents graphs
+    import json
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import queue as Q # Package used to manage queues
+    import logging
+    from scipy.spatial.distance import pdist, squareform
+
+    #(movies, people) = load_dataframes();
+
+    budgets = movies['budget'].copy()
+    
+    #CHANGE FEATURES HERE
+    features= movies.loc[:, ['budget', 'revenue']]
+    features_filtered=features[(features != 0).all(1)]
+    
+    budget_max = budgets.max();
+
+    logging.info(f'The budget max = {budget_max}');
+
+    budgets_filtered = budgets[budgets != 0];
+
+    logging.info(budgets_filtered.head())
+
+    budgets_filtered.to_csv('./data/budgets.csv');
+
+    n_nodes=len(budgets_filtered)
+    
+    logging.info(f'The number of nodes is : {n_nodes}')
+    
+    movies_filtered_by_budget=movies.loc[features_filtered.index]
+    
+    movies_genres_id = movies_filtered_by_budget['genres'].copy()
+
+    adjacency = np.zeros((n_nodes, n_nodes), dtype=float)  
+    
+    #version julien avec norm euclidienne
+    distances = pdist(features_filtered, metric='euclidean')
+    kernel_width = distances.mean()
+    weights = np.exp(-distances**2 / kernel_width**2)
+    adjacency = squareform(weights)
+    plt.hist(weights)
+    plt.title('Distribution of weights')
+    plt.show()
+
+    
+    #remove some edges by changing the value here    
+    adjacency[adjacency <0.85]=0 
+    np.fill_diagonal(adjacency, 0)
+    n_edges=int(np.count_nonzero(adjacency)/2)
+    
+    logging.info(f'The number of edges is : {n_edges}')
+    logging.info(f'Adjacency done !');
+
+    return (adjacency,movies_filtered_by_budget, movies_genres_id)
+
+
 
 def filter_movies_by_years(movies, startdate, enddate):
     #DECADE SELECTION
