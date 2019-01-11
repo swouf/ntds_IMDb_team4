@@ -41,6 +41,27 @@ def load_dataframes():
     credits.apply(lambda row: [x.update({'movie_id': row['movie_id']}) for x in row['cast']], axis=1);
     credits.apply(lambda row: [x.update({'movie_id': row['movie_id']}) for x in row['crew']], axis=1);
     credits.apply(lambda row: [person.update({'order': order}) for order, person in enumerate(row['crew'])], axis=1);
+    
+    movies.apply(lambda row: [x.update({'id': row['id']}) for x in row['genres']], axis=1);
+
+    genre = []
+    movies.genres.apply(lambda x: genre.extend(x))
+    genre = pd.DataFrame(genre)
+    genre['type'] = 'genre'
+    genre=genre.drop_duplicates('id')
+    genre['index']=genre['id']
+    genre=genre.set_index('id') 
+    list_of_genres=genre['name'].unique()
+    #this list contains the genre types
+    #There are 21 different genres
+    nb_genres=len(list_of_genres)
+    list_of_genres_id=pd.Series(range(nb_genres))
+    list_of_genres_id
+    gerne_names=genre['name'].copy()
+    #transform the name of the genre into numbers
+    factorized_names = pd.factorize(gerne_names)[0]
+    movies['genres']=factorized_names
+    #movies['genres']=genre['name']
 
     cast = []
     credits.cast.apply(lambda x: cast.extend(x))
@@ -56,21 +77,26 @@ def load_dataframes():
 
     logging.info("Data loaded !");
 
-    return (movies, people)
+    return (movies, people, list_of_genres_id)
 
-def make_budget_based_adjacency(movies):
-
+def make_budget_based_adjacency(movies,list_of_genres_id):
+    #Ma version (julien), utilise le budget, mais aussi le revenu, et fait la norme euclidienne entre les points.
     import json
     import numpy as np
     import pandas as pd
     import matplotlib.pyplot as plt
     import queue as Q # Package used to manage queues
     import logging
+    from scipy.spatial.distance import pdist, squareform
 
     #(movies, people) = load_dataframes();
 
     budgets = movies['budget'].copy()
-
+    
+    #try to use euclidian norm on budget+other features
+    features= movies.loc[:, ['budget', 'revenue']]
+    features_filtered=features[(features != 0).all(1)]
+    
     budget_max = budgets.max();
 
     logging.info(f'The budget max = {budget_max}');
@@ -82,21 +108,167 @@ def make_budget_based_adjacency(movies):
     budgets_filtered.to_csv('./data/budgets.csv');
 
     n_nodes=len(budgets_filtered)
+    
+    logging.info(f'The number of nodes is : {n_nodes}')
+    
+    #version initial de jérémy
+    #movies_filtered_by_budget = movies.loc[budgets_filtered.index]
+    #version de julien
+    movies_filtered_by_budget=movies.loc[features_filtered.index]
+    
+    movies_genres_id = movies_filtered_by_budget['genres'].copy()
 
-    movies_filtered_by_budget = movies.iloc[budgets_filtered.index]
-
-    #Create a matrix of 0 of size (the number of nodes)
     adjacency = np.zeros((n_nodes, n_nodes), dtype=float)
+    
+ #version initiale de jérémy
+    #k = 0
+    #for movieBudget in enumerate(budgets_filtered):
+        #b = budgets_filtered.copy()
+        #b = b.apply(lambda x: budget_max-abs(x-movieBudget[1]))
+        #adjacency[:,k] = b.values
+        #adjacency[:,k] = b.values/budget_max;
+        #adjacency[:,k]=weights
+        #k += 1
+    
+    #version julien avec norm euclidienne
+    distances = pdist(features_filtered, metric='euclidean')
+    kernel_width = distances.mean()
+    weights = np.exp(-distances**2 / kernel_width**2)
+    adjacency = squareform(weights)
+    plt.hist(weights)
+    plt.title('Distribution of weights')
+    plt.show()
 
-    k = 0
-    for movieBudget in enumerate(budgets_filtered):
-        b = budgets_filtered.copy()
-        b = b.apply(lambda x: budget_max-abs(x-movieBudget[1]))
-        adjacency[:,k] = b.values;
-        k += 1
-
+    
+    #remove some edges by changing the value here    
+    adjacency[adjacency <0.85]=0 
     np.fill_diagonal(adjacency, 0)
-
+    n_edges=int(np.count_nonzero(adjacency)/2)
+    
+    logging.info(f'The number of edges is : {n_edges}')
     logging.info(f'Adjacency done !');
 
-    return (adjacency,movies_filtered_by_budget)
+    return (adjacency,movies_filtered_by_budget, movies_genres_id)
+
+
+def make_features_based_adjacency(movies,list_of_genres_id):
+    #Fonction supplémentaire pour tester différents graphs
+    import json
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import queue as Q # Package used to manage queues
+    import logging
+    from scipy.spatial.distance import pdist, squareform
+
+    #(movies, people) = load_dataframes();
+
+    budgets = movies['budget'].copy()
+    
+    #CHANGE FEATURES HERE
+    features= movies.loc[:, ['budget', 'revenue']]
+    features_filtered=features[(features != 0).all(1)]
+    
+    budget_max = budgets.max();
+
+    logging.info(f'The budget max = {budget_max}');
+
+    budgets_filtered = budgets[budgets != 0];
+
+    logging.info(budgets_filtered.head())
+
+    budgets_filtered.to_csv('./data/budgets.csv');
+
+    n_nodes=len(budgets_filtered)
+    
+    logging.info(f'The number of nodes is : {n_nodes}')
+    
+    movies_filtered_by_budget=movies.loc[features_filtered.index]
+    
+    movies_genres_id = movies_filtered_by_budget['genres'].copy()
+
+    adjacency = np.zeros((n_nodes, n_nodes), dtype=float)  
+    
+    #version julien avec norm euclidienne
+    distances = pdist(features_filtered, metric='euclidean')
+    kernel_width = distances.mean()
+    weights = np.exp(-distances**2 / kernel_width**2)
+    adjacency = squareform(weights)
+    plt.hist(weights)
+    plt.title('Distribution of weights')
+    plt.show()
+
+    
+    #remove some edges by changing the value here    
+    adjacency[adjacency <0.85]=0 
+    np.fill_diagonal(adjacency, 0)
+    n_edges=int(np.count_nonzero(adjacency)/2)
+    
+    logging.info(f'The number of edges is : {n_edges}')
+    logging.info(f'Adjacency done !');
+
+    return (adjacency,movies_filtered_by_budget, movies_genres_id)
+
+
+
+def filter_movies_by_years(movies, startdate, enddate):
+    #DECADE SELECTION
+    #Select the decade that you want to keep
+    #startdate = pd.to_datetime("2010-01-01").date()
+    #enddate = pd.to_datetime("2020-01-01").date()
+    movies=movies[(movies['release_date'] > startdate) & (movies['release_date'] <enddate)]
+    
+    return movies
+
+
+def load_features():
+    #load les fatures pour faire une adjacency des movies selon les acteurs
+    import json
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import queue as Q # Package used to manage queues
+    import logging
+    
+    features = pd.read_csv('./data/features_v3.csv')
+    features = features.drop(features.columns[0],axis=1)
+    features = features.drop(columns=['name'],axis=1)
+    #drop useless columns
+    features=features.drop(features.iloc[:, 0:24], axis=1)
+    
+    #transpose to get adjacency of movies
+    features_transposed=features.transpose()
+    
+    return features_transposed
+
+def make_adjacency_from_feature_matrix(features):
+    import json
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import queue as Q # Package used to manage queues
+    import logging  
+    
+    #We calculate the number of nodes   
+    n_nodes=len(features)
+    
+    #Create a matrix of 0 of size equal to the number of nodes
+    adjacency = np.zeros((n_nodes, n_nodes), dtype=int)
+    
+    for idx_mul in range(n_nodes):
+        tmp=features.multiply(features.iloc[idx_mul])
+        #On each row of the adjacency matrix, sum all the values of this temporary array
+        adjacency[idx_mul]=tmp.sum(axis=1)
+    
+    #fill the diagonal of the matrix with zeroes
+    np.fill_diagonal(adjacency, 0)
+    
+    plt.figure(figsize=(10, 10))
+    plt.spy(adjacency, markersize=0.1)
+    plt.title('adjacency matrix')
+    
+    np.save('./data/adjacency_test_movies', adjacency);
+    
+    #find the correct number of minimal actors to link 2 movies
+    adjacency[adjacency <2]=0
+    return adjacency
