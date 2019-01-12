@@ -68,14 +68,16 @@ def load_dataframes():
     credits.cast.apply(lambda x: cast.extend(x))
     cast = pd.DataFrame(cast)
     cast['type'] = 'cast'
+    
+    #TEST AVEC SEULEMENT LES ACTEURS
+    #crew = []
+    #credits.crew.apply(lambda x: crew.extend(x))
+    #crew = pd.DataFrame(crew)
+    #crew['type'] = 'crew'
 
-    crew = []
-    credits.crew.apply(lambda x: crew.extend(x))
-    crew = pd.DataFrame(crew)
-    crew['type'] = 'crew'
-
-    people = pd.concat([cast, crew],  ignore_index=True, sort=False)
-
+    #people = pd.concat([cast, crew],  ignore_index=True, sort=False)
+    people=cast
+    
     logging.info("Data loaded !");
 
     return (movies, people, list_of_genres_id)
@@ -221,7 +223,6 @@ def filter_movies_by_years(movies, startdate, enddate):
     
     return movies
 
-
 def load_features():
     #load les fatures pour faire une adjacency des movies selon les acteurs
     import json
@@ -231,11 +232,12 @@ def load_features():
     import queue as Q # Package used to manage queues
     import logging
     
-    features = pd.read_csv('./data/features_v3.csv')
+    #change the value here
+    features = pd.read_csv('./data/test_actors_only.csv')
     features = features.drop(features.columns[0],axis=1)
     features = features.drop(columns=['name'],axis=1)
     #drop useless columns
-    features=features.drop(features.iloc[:, 0:24], axis=1)
+    features=features.drop(features.iloc[:, 0:2], axis=1)
     
     #transpose to get adjacency of movies
     features_transposed=features.transpose()
@@ -268,8 +270,106 @@ def make_adjacency_from_feature_matrix(features):
     plt.spy(adjacency, markersize=0.1)
     plt.title('adjacency matrix')
     
-    np.save('./data/adjacency_test_movies', adjacency);
+    np.save('./data/adjacency_actors_only', adjacency);
     
     #find the correct number of minimal actors to link 2 movies
     adjacency[adjacency <2]=0
     return adjacency
+
+def create_features(movies,people):
+    #create the feature matrix using actors only
+    import json
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import queue as Q # Package used to manage queues
+    import logging
+    
+    
+    people = people.drop(columns=['gender', 'credit_id','cast_id','order','character','type'])
+    people = people.sort_values(by='id')
+
+    #removing the rows with similar person and ID (For example if someone played 2 different roles in a movie we only keep one of these entries)
+    people=people.drop_duplicates(subset=['id', 'movie_id'])
+
+    #get the number of movie that each person worked on
+    table_nb_movies=people['id'].value_counts()
+
+    movies['movie_id']=movies['id']
+    movies=movies.drop(columns=['vote_count','budget','genres','homepage','keywords','original_language','overview','popularity','production_companies','production_countries','revenue','runtime','spoken_languages','status','tagline','original_title'])
+    movies=movies.set_index('movie_id')
+
+    #merge the movies and the people so that we can get the rating of each movie 
+    people = people.merge(movies, on='movie_id')
+    unique_values=people['id_x'].unique()
+    unique_values.sort()
+    people['id']=people['id_x']
+    people = people.drop(columns=['id_x','id_y','release_date'])
+
+    #simple_list will contain all the different actor names, this will be the column of our features
+    simple_list=people.loc[:, ['id','movie_id','name']]
+    simple_list=simple_list.sort_values(by='id')
+    simple_list=simple_list.drop_duplicates('id')
+
+    simple_list=simple_list.set_index('id') 
+    simple_list=simple_list.drop(columns=['movie_id'])
+    
+    threshold_movies=5
+    for idx in unique_values:
+        nb_films=table_nb_movies[idx] 
+        if (nb_films)<threshold_movies:
+            simple_list=simple_list.drop(index=idx)
+    simple_list.to_csv('./data/test_actors_only.csv', sep=','); 
+    
+    simple_list = pd.read_csv('./data/test_actors_only.csv') 
+    
+    #Add a column that will contain the average rating of the actor 
+    simple_list['Average_Rating']=np.nan
+
+    #Add a column for the ratings by type
+    #for i in range(len(list_of_genres)):
+    #    a=list_of_genres[i]
+    #    simple_list[a+'_Rating']=0
+    #Add one colum for all the existing movies
+    new_movie_index=np.arange(movies.shape[0])
+    for i in new_movie_index:
+        simple_list['Movie_ID_%d' % i]=0
+
+    unique_id=simple_list['id'].unique()
+    #unique_id=simple_list.index.unique()
+    unique_id.sort()
+    #unique_id.sort_values()
+    index_ini=0
+    
+    for idx in unique_id:
+        rating_average=1
+        subset=people[people['id'] == idx]
+        new_index_subset = pd.Series(range(0,len(subset)))
+        subset=subset.set_index(new_index_subset) 
+        index_person=subset.iloc[0,5]
+
+        #rating_type=[0] * nb_genres
+        #nb_movies_of_type=[0] * nb_genres
+        for i in new_index_subset:
+            index_film=subset.iloc[i,0]+2 #3 initial columns+21 new genre ratings
+            simple_list.iloc[index_ini, index_film]=1
+            rating_average=rating_average+subset.iloc[i,3]    
+        #nb_movies_of_type[nb_movies_of_type==0]=1
+        np.seterr(divide='ignore', invalid='ignore')
+        #rating_type=np.divide(rating_type,nb_movies_of_type)
+
+        #placing the average rating per type
+        #for j in range(0,nb_genres):
+        #    simple_list.iloc[index_ini, 3+j]=rating_type[j]
+
+        rating_average=rating_average/len(subset)
+        #simple_list.loc[idx, 'Average_Rating']=rating_average
+        simple_list.iloc[index_ini, 2]=rating_average    
+        index_ini=index_ini+1 
+        
+    simple_list.to_csv('./data/test_actors_only.csv', sep=','); 
+    
+    features = pd.read_csv('./data/test_actors_only.csv')
+    features = features.drop(features.columns[0],axis=1)
+    
+    return features
