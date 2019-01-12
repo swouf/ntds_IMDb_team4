@@ -57,10 +57,11 @@ def load_dataframes():
     nb_genres=len(list_of_genres)
     list_of_genres_id=pd.Series(range(nb_genres))
     list_of_genres_id
-    gerne_names=genre['name'].copy()
+    genre_names=genre['name'].copy()
     #transform the name of the genre into numbers
-    factorized_names = pd.factorize(gerne_names)[0]
+    factorized_names = pd.factorize(genre_names)[0]
     movies['genres']=factorized_names
+    movies['genres_names']=genre_names
     #movies['genres']=genre['name']
 
     cast = []
