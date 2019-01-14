@@ -9,7 +9,7 @@ ntds_IMDb_team4
 
 + [/](./): contains the notebooks, this README and a compressed copy of the adjacency matrix ([adjacency.zip](./adjacency.zip)).
 + [data/](./data/): Contains the data necessary for the project.
-+ [src/](./src/): Contains the python code we wrote during the milestones the manipulate our data.
++ [src/](./src/): Contains the python code we wrote during the milestones and final part to manipulate our data.
 
 ## Milestone 1
 
