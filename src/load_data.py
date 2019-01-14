@@ -63,20 +63,36 @@ def load_dataframes():
     movies['genres']=factorized_names
     movies['genres_names']=genre_names
     #movies['genres']=genre['name']
+    
+    features_filter= movies.loc[:, ['budget', 'revenue']]
+    new_features=features_filter[(features_filter != 0).all(1)] 
+    movies_filtered_by_features=movies.loc[new_features.index]
+    movies=movies_filtered_by_features
 
+    
+    #add the return on investment
+    budget=movies['budget']
+    revenue=movies['revenue']
+    ROI=(revenue-budget)
+    ROI=ROI.divide(budget)
+    movies['ROI']=ROI
+    
+    
     cast = []
     credits.cast.apply(lambda x: cast.extend(x))
     cast = pd.DataFrame(cast)
     cast['type'] = 'cast'
     
-    #TEST AVEC SEULEMENT LES ACTEURS
-    #crew = []
-    #credits.crew.apply(lambda x: crew.extend(x))
-    #crew = pd.DataFrame(crew)
-    #crew['type'] = 'crew'
-
-    #people = pd.concat([cast, crew],  ignore_index=True, sort=False)
+    #FEATURES AVEC SEULEMENT LES ACTEURS EN COMMENTANT CES LIGNES
+    crew = []
+    credits.crew.apply(lambda x: crew.extend(x))
+    crew = pd.DataFrame(crew)
+    crew['type'] = 'crew'
+    people = pd.concat([cast, crew],  ignore_index=True, sort=False)
+    
     people=cast
+    
+    people=people.loc[people['movie_id'].isin(movies.index)]
     
     logging.info("Data loaded !");
 
@@ -97,7 +113,7 @@ def make_budget_based_adjacency(movies,list_of_genres_id):
     budgets = movies['budget'].copy()
     
     #try to use euclidian norm on budget+other features
-    features= movies.loc[:, ['budget', 'revenue']]
+    features= movies.loc[:, ['budget', 'ROI']]
     features_filtered=features[(features != 0).all(1)]
     
     budget_max = budgets.max();
@@ -233,7 +249,7 @@ def load_features():
     import logging
     
     #change the value here
-    features = pd.read_csv('./data/test_actors_only.csv')
+    features = pd.read_csv('./data/test_actors_crew.csv')
     features = features.drop(features.columns[0],axis=1)
     features = features.drop(columns=['name'],axis=1)
     #drop useless columns
@@ -270,7 +286,7 @@ def make_adjacency_from_feature_matrix(features):
     plt.spy(adjacency, markersize=0.1)
     plt.title('adjacency matrix')
     
-    np.save('./data/adjacency_actors_only', adjacency);
+    np.save('./data/adjacency_actors_crew', adjacency);
     
     #find the correct number of minimal actors to link 2 movies
     adjacency[adjacency <2]=0
@@ -285,7 +301,6 @@ def create_features(movies,people):
     import queue as Q # Package used to manage queues
     import logging
     
-    
     people = people.drop(columns=['gender', 'credit_id','cast_id','order','character','type'])
     people = people.sort_values(by='id')
 
@@ -296,8 +311,9 @@ def create_features(movies,people):
     table_nb_movies=people['id'].value_counts()
 
     movies['movie_id']=movies['id']
-    movies=movies.drop(columns=['vote_count','budget','genres','homepage','keywords','original_language','overview','popularity','production_companies','production_countries','revenue','runtime','spoken_languages','status','tagline','original_title'])
-    movies=movies.set_index('movie_id')
+
+    movies=movies.drop(columns=['vote_count','budget','genres','homepage','keywords','original_language','overview','popularity','production_companies','production_countries','revenue','runtime','spoken_languages','status','tagline','original_title','ROI'])
+    movies=movies.set_index('movie_id') 
 
     #merge the movies and the people so that we can get the rating of each movie 
     people = people.merge(movies, on='movie_id')
@@ -313,16 +329,16 @@ def create_features(movies,people):
 
     simple_list=simple_list.set_index('id') 
     simple_list=simple_list.drop(columns=['movie_id'])
-    
+
     threshold_movies=5
     for idx in unique_values:
         nb_films=table_nb_movies[idx] 
         if (nb_films)<threshold_movies:
             simple_list=simple_list.drop(index=idx)
-    simple_list.to_csv('./data/test_actors_only.csv', sep=','); 
-    
-    simple_list = pd.read_csv('./data/test_actors_only.csv') 
-    
+    simple_list.to_csv('./data/test_actors_crew.csv', sep=','); 
+
+    simple_list = pd.read_csv('./data/test_actors_crew.csv') 
+
     #Add a column that will contain the average rating of the actor 
     simple_list['Average_Rating']=np.nan
 
@@ -331,16 +347,14 @@ def create_features(movies,people):
     #    a=list_of_genres[i]
     #    simple_list[a+'_Rating']=0
     #Add one colum for all the existing movies
-    new_movie_index=np.arange(movies.shape[0])
+    new_movie_index=movies['id']
     for i in new_movie_index:
         simple_list['Movie_ID_%d' % i]=0
 
     unique_id=simple_list['id'].unique()
-    #unique_id=simple_list.index.unique()
     unique_id.sort()
-    #unique_id.sort_values()
     index_ini=0
-    
+
     for idx in unique_id:
         rating_average=1
         subset=people[people['id'] == idx]
@@ -351,8 +365,8 @@ def create_features(movies,people):
         #rating_type=[0] * nb_genres
         #nb_movies_of_type=[0] * nb_genres
         for i in new_index_subset:
-            index_film=subset.iloc[i,0]+2 #3 initial columns+21 new genre ratings
-            simple_list.iloc[index_ini, index_film]=1
+            index_film=subset.iloc[i,0] #3 initial columns+21 new genre ratings
+            simple_list.loc[index_ini, 'Movie_ID_%d' % index_film]=1
             rating_average=rating_average+subset.iloc[i,3]    
         #nb_movies_of_type[nb_movies_of_type==0]=1
         np.seterr(divide='ignore', invalid='ignore')
@@ -366,10 +380,10 @@ def create_features(movies,people):
         #simple_list.loc[idx, 'Average_Rating']=rating_average
         simple_list.iloc[index_ini, 2]=rating_average    
         index_ini=index_ini+1 
-        
-    simple_list.to_csv('./data/test_actors_only.csv', sep=','); 
     
-    features = pd.read_csv('./data/test_actors_only.csv')
+    simple_list.to_csv('./data/test_actors_crew.csv', sep=','); 
+    
+    features = pd.read_csv('./data/test_actors_crew.csv')
     features = features.drop(features.columns[0],axis=1)
     
     return features
