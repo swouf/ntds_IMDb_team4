@@ -82,6 +82,7 @@ def load_dataframes():
     credits.cast.apply(lambda x: cast.extend(x))
     cast = pd.DataFrame(cast)
     cast['type'] = 'cast'
+    #people=cast
     
     #FEATURES AVEC SEULEMENT LES ACTEURS EN COMMENTANT CES LIGNES
     crew = []
@@ -90,7 +91,7 @@ def load_dataframes():
     crew['type'] = 'crew'
     people = pd.concat([cast, crew],  ignore_index=True, sort=False)
     
-    people=cast
+    
     
     people=people.loc[people['movie_id'].isin(movies.index)]
     
@@ -320,7 +321,7 @@ def create_features(movies,people):
     unique_values=people['id_x'].unique()
     unique_values.sort()
     people['id']=people['id_x']
-    people = people.drop(columns=['id_x','id_y','release_date'])
+    people = people.drop(columns=['id_x','id_y','release_date','department','job'])
 
     #simple_list will contain all the different actor names, this will be the column of our features
     simple_list=people.loc[:, ['id','movie_id','name']]
@@ -330,6 +331,7 @@ def create_features(movies,people):
     simple_list=simple_list.set_index('id') 
     simple_list=simple_list.drop(columns=['movie_id'])
 
+    #only take people that worked on at least 5 movies
     threshold_movies=5
     for idx in unique_values:
         nb_films=table_nb_movies[idx] 
