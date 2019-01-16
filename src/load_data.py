@@ -114,7 +114,7 @@ def make_budget_based_adjacency(movies,list_of_genres_id):
     budgets = movies['budget'].copy()
     
     #try to use euclidian norm on budget+other features
-    features= movies.loc[:, ['budget', 'ROI']]
+    features= movies.loc[:, ['budget', 'genres']]
     features_filtered=features[(features != 0).all(1)]
     
     budget_max = budgets.max();
@@ -161,7 +161,7 @@ def make_budget_based_adjacency(movies,list_of_genres_id):
 
     
     #remove some edges by changing the value here    
-    adjacency[adjacency <0.85]=0 
+    adjacency[adjacency <0.90]=0 
     np.fill_diagonal(adjacency, 0)
     n_edges=int(np.count_nonzero(adjacency)/2)
     
