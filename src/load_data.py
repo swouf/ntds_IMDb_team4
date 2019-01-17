@@ -43,7 +43,10 @@ def load_dataframes():
     credits.apply(lambda row: [person.update({'order': order}) for order, person in enumerate(row['crew'])], axis=1);
     
     movies.apply(lambda row: [x.update({'id': row['id']}) for x in row['genres']], axis=1);
-
+    #########################################################################################################################
+    #########################################################################################################################
+    
+    #expending the genre JSON column and keeping only the first 1
     genre = []
     movies.genres.apply(lambda x: genre.extend(x))
     genre = pd.DataFrame(genre)
@@ -51,53 +54,47 @@ def load_dataframes():
     genre=genre.drop_duplicates('id')
     genre['index']=genre['id']
     genre=genre.set_index('id') 
-    list_of_genres=genre['name'].unique()
-    #this list contains the genre types
-    #There are 21 different genres
-    nb_genres=len(list_of_genres)
-    list_of_genres_id=pd.Series(range(nb_genres))
-    #list_of_genres_id
     
     genre_names=genre['name'].copy()
-    #transform the name of the genre into numbers
+    
+    #transform the name of the genre into numbers to assign a specific ID to each genre
     factorized_names = pd.factorize(genre_names)[0]
     movies['genres']=factorized_names
     movies['genres_names']=genre_names
-    #movies['genres']=genre['name']
     
+    
+    #Removing movies with no information about budget or revenue
     features_filter= movies.loc[:, ['budget', 'revenue']]
     new_features=features_filter[(features_filter != 0).all(1)] 
     movies_filtered_by_features=movies.loc[new_features.index]
     movies=movies_filtered_by_features
 
     
-    #add the return on investment
+    #add the return on investment in the movies dataframe
     budget=movies['budget']
     revenue=movies['revenue']
     ROI=(revenue-budget)
     ROI=ROI.divide(budget)
     movies['ROI']=ROI
     
+    #add the success indicator of the movie (value of 1 if the ROI is above a threshold and 0 otherwise)
     success=ROI
     threshold_success=1
     success[success<threshold_success]=0
     success[success>=threshold_success]=1
     movies['success']=success
     
+    #Create the people dataframe using the cast and the crew
     cast = []
     credits.cast.apply(lambda x: cast.extend(x))
     cast = pd.DataFrame(cast)
     cast['type'] = 'cast'
-    #people=cast
     
-    #FEATURES AVEC SEULEMENT LES ACTEURS EN COMMENTANT CES LIGNES
     crew = []
     credits.crew.apply(lambda x: crew.extend(x))
     crew = pd.DataFrame(crew)
     crew['type'] = 'crew'
     people = pd.concat([cast, crew],  ignore_index=True, sort=False)
-    
-    
     
     people=people.loc[people['movie_id'].isin(movies.index)]
     
@@ -246,8 +243,9 @@ def filter_movies_by_years(movies, startdate, enddate):
     
     return movies
 
+#loads the feature dataframe, removes useless columns and transpose it.
 def load_features():
-    #load les fatures pour faire une adjacency des movies selon les acteurs
+
     import json
     import numpy as np
     import pandas as pd
@@ -255,7 +253,7 @@ def load_features():
     import queue as Q # Package used to manage queues
     import logging
     
-    #change the value here
+    #select the type of
     features = pd.read_csv('./data/test_actors_crew.csv')
     features = features.drop(features.columns[0],axis=1)
     features = features.drop(columns=['name'],axis=1)
@@ -267,6 +265,7 @@ def load_features():
     
     return features_transposed
 
+#Uses the clean feature dataframe from the load_features() function to create the adjacency matrix
 def make_adjacency_from_feature_matrix(features):
     import json
     import numpy as np
@@ -289,13 +288,10 @@ def make_adjacency_from_feature_matrix(features):
     #fill the diagonal of the matrix with zeroes
     np.fill_diagonal(adjacency, 0)
     
-    plt.figure(figsize=(10, 10))
-    plt.spy(adjacency, markersize=0.1)
-    plt.title('adjacency matrix')
-    
+    #save the adjacency for later use
     np.save('./data/adjacency_actors_crew', adjacency);
     
-    #find the correct number of minimal actors to link 2 movies
+    #We connect movies if they have at least 2 poeple in common
     adjacency[adjacency <2]=0
     return adjacency
 
