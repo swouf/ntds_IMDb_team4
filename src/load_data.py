@@ -77,6 +77,11 @@ def load_dataframes():
     ROI=ROI.divide(budget)
     movies['ROI']=ROI
     
+    success=ROI
+    threshold_success=1
+    success[success<threshold_success]=0
+    success[success>=threshold_success]=1
+    movies['success']=success
     
     cast = []
     credits.cast.apply(lambda x: cast.extend(x))
@@ -155,7 +160,7 @@ def make_budget_based_adjacency(movies,list_of_genres_id):
     kernel_width = distances.mean()
     weights = np.exp(-distances**2 / kernel_width**2)
     adjacency = squareform(weights)
-    plt.hist(weights)
+    plt.hist(weights, bins = 40)
     plt.title('Distribution of weights')
     plt.show()
 
@@ -313,7 +318,7 @@ def create_features(movies,people):
 
     movies['movie_id']=movies['id']
 
-    movies=movies.drop(columns=['vote_count','budget','genres','homepage','keywords','original_language','overview','popularity','production_companies','production_countries','revenue','runtime','spoken_languages','status','tagline','original_title','ROI'])
+    movies=movies.drop(columns=['vote_count','budget','genres','homepage','keywords','original_language','overview','popularity','production_companies','production_countries','revenue','runtime','spoken_languages','status','tagline','original_title','ROI','success'])
     movies=movies.set_index('movie_id') 
 
     #merge the movies and the people so that we can get the rating of each movie 
