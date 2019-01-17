@@ -56,7 +56,8 @@ def load_dataframes():
     #There are 21 different genres
     nb_genres=len(list_of_genres)
     list_of_genres_id=pd.Series(range(nb_genres))
-    list_of_genres_id
+    #list_of_genres_id
+    
     genre_names=genre['name'].copy()
     #transform the name of the genre into numbers
     factorized_names = pd.factorize(genre_names)[0]
@@ -102,7 +103,7 @@ def load_dataframes():
     
     logging.info("Data loaded !");
 
-    return (movies, people, list_of_genres_id)
+    return (movies, people)
 
 def make_budget_based_adjacency(movies,list_of_genres_id):
     #Ma version (julien), utilise le budget, mais aussi le revenu, et fait la norme euclidienne entre les points.
@@ -298,8 +299,9 @@ def make_adjacency_from_feature_matrix(features):
     adjacency[adjacency <2]=0
     return adjacency
 
+
+#This function is used to create the feature matrix that connects people and movies
 def create_features(movies,people):
-    #create the feature matrix using actors only
     import json
     import numpy as np
     import pandas as pd
@@ -317,7 +319,8 @@ def create_features(movies,people):
     table_nb_movies=people['id'].value_counts()
 
     movies['movie_id']=movies['id']
-
+    
+    #remove the columns that are not usefull
     movies=movies.drop(columns=['vote_count','budget','genres','homepage','keywords','original_language','overview','popularity','production_companies','production_countries','revenue','runtime','spoken_languages','status','tagline','original_title','ROI','success'])
     movies=movies.set_index('movie_id') 
 
@@ -332,7 +335,6 @@ def create_features(movies,people):
     simple_list=people.loc[:, ['id','movie_id','name']]
     simple_list=simple_list.sort_values(by='id')
     simple_list=simple_list.drop_duplicates('id')
-
     simple_list=simple_list.set_index('id') 
     simple_list=simple_list.drop(columns=['movie_id'])
 
@@ -342,18 +344,14 @@ def create_features(movies,people):
         nb_films=table_nb_movies[idx] 
         if (nb_films)<threshold_movies:
             simple_list=simple_list.drop(index=idx)
+            
+    #save the dataframe to        
     simple_list.to_csv('./data/test_actors_crew.csv', sep=','); 
-
     simple_list = pd.read_csv('./data/test_actors_crew.csv') 
 
     #Add a column that will contain the average rating of the actor 
     simple_list['Average_Rating']=np.nan
 
-    #Add a column for the ratings by type
-    #for i in range(len(list_of_genres)):
-    #    a=list_of_genres[i]
-    #    simple_list[a+'_Rating']=0
-    #Add one colum for all the existing movies
     new_movie_index=movies['id']
     for i in new_movie_index:
         simple_list['Movie_ID_%d' % i]=0
@@ -369,27 +367,19 @@ def create_features(movies,people):
         subset=subset.set_index(new_index_subset) 
         index_person=subset.iloc[0,5]
 
-        #rating_type=[0] * nb_genres
-        #nb_movies_of_type=[0] * nb_genres
         for i in new_index_subset:
-            index_film=subset.iloc[i,0] #3 initial columns+21 new genre ratings
+            index_film=subset.iloc[i,0] 
             simple_list.loc[index_ini, 'Movie_ID_%d' % index_film]=1
             rating_average=rating_average+subset.iloc[i,3]    
-        #nb_movies_of_type[nb_movies_of_type==0]=1
         np.seterr(divide='ignore', invalid='ignore')
-        #rating_type=np.divide(rating_type,nb_movies_of_type)
 
-        #placing the average rating per type
-        #for j in range(0,nb_genres):
-        #    simple_list.iloc[index_ini, 3+j]=rating_type[j]
-
+        #place the average rating of the person
         rating_average=rating_average/len(subset)
-        #simple_list.loc[idx, 'Average_Rating']=rating_average
         simple_list.iloc[index_ini, 2]=rating_average    
         index_ini=index_ini+1 
     
+    #save the dataframe to reload it quickyl later
     simple_list.to_csv('./data/test_actors_crew.csv', sep=','); 
-    
     features = pd.read_csv('./data/test_actors_crew.csv')
     features = features.drop(features.columns[0],axis=1)
     
