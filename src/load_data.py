@@ -102,7 +102,7 @@ def load_dataframes():
 
     return (movies, people)
 
-def make_budget_based_adjacency(movies,list_of_genres_id):
+def make_budget_based_adjacency(movies):
     #Ma version (julien), utilise le budget, mais aussi le revenu, et fait la norme euclidienne entre les points.
     import json
     import numpy as np
@@ -112,69 +112,41 @@ def make_budget_based_adjacency(movies,list_of_genres_id):
     import logging
     from scipy.spatial.distance import pdist, squareform
 
-    #(movies, people) = load_dataframes();
 
     budgets = movies['budget'].copy()
+    budget_max = budgets.max();
     
-    #try to use euclidian norm on budget+other features
+    #Use the euclidean norm on the budget and the genres to build the adjacency
     features= movies.loc[:, ['budget', 'genres']]
     features_filtered=features[(features != 0).all(1)]
-    
-    budget_max = budgets.max();
 
-    logging.info(f'The budget max = {budget_max}');
-
-    budgets_filtered = budgets[budgets != 0];
-
-    logging.info(budgets_filtered.head())
-
-    budgets_filtered.to_csv('./data/budgets.csv');
-
-    n_nodes=len(budgets_filtered)
-    
-    logging.info(f'The number of nodes is : {n_nodes}')
-    
-    #version initial de jérémy
-    #movies_filtered_by_budget = movies.loc[budgets_filtered.index]
-    #version de julien
     movies_filtered_by_budget=movies.loc[features_filtered.index]
+    n_nodes=movies_filtered_by_budget.shape[0]
     
-    movies_genres_id = movies_filtered_by_budget['genres'].copy()
-
+    #creation of the adjacency matrix
     adjacency = np.zeros((n_nodes, n_nodes), dtype=float)
-    
- #version initiale de jérémy
-    #k = 0
-    #for movieBudget in enumerate(budgets_filtered):
-        #b = budgets_filtered.copy()
-        #b = b.apply(lambda x: budget_max-abs(x-movieBudget[1]))
-        #adjacency[:,k] = b.values
-        #adjacency[:,k] = b.values/budget_max;
-        #adjacency[:,k]=weights
-        #k += 1
-    
-    #version julien avec norm euclidienne
     distances = pdist(features_filtered, metric='euclidean')
     kernel_width = distances.mean()
     weights = np.exp(-distances**2 / kernel_width**2)
     adjacency = squareform(weights)
-    plt.hist(weights, bins = 40)
-    plt.title('Distribution of weights')
-    plt.show()
-
     
-    #remove some edges by changing the value here    
+    #plot the weight histogram
+    plt.hist(weights, bins = 30)
+    plt.xlabel('Weights')
+    plt.ylabel('Occurence')
+    plt.title('Weights distribution')
+    plt.show()
+    
+    #remove some edges by selecting the threshold here 
     adjacency[adjacency <0.90]=0 
     np.fill_diagonal(adjacency, 0)
     n_edges=int(np.count_nonzero(adjacency)/2)
     
-    logging.info(f'The number of edges is : {n_edges}')
-    logging.info(f'Adjacency done !');
 
-    return (adjacency,movies_filtered_by_budget, movies_genres_id)
+    return (adjacency,movies_filtered_by_budget)
 
 
-def make_features_based_adjacency(movies,list_of_genres_id):
+def make_features_based_adjacency(movies):
     #Fonction supplémentaire pour tester différents graphs
     import json
     import numpy as np
