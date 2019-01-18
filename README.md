@@ -18,6 +18,6 @@ The main code is in the jupyter notebook [final_project_ntds_2018.ipynb](./final
 
 A few functions were developped in their own function file. These functions can be found in the folder [src](./src/). The most important ones are the following:
 
-[load_data](./src/load_data.py`) contains multiple functions used to clean the initial dataset, create features dataframes and adjacency matrices. 
-[genre_graph](./src/genre_graph.py`) contains functions used to create graphs based on the genres of the movies.
-[test_success](./src/test_success.py`) contains functions that reorder adjacency matrices based on kmeans results
++ [load_data](./src/load_data.py`) contains multiple functions used to clean the initial dataset, create features dataframes and adjacency matrices. 
++ [genre_graph](./src/genre_graph.py`) contains functions used to create graphs based on the genres of the movies.
++ [test_success](./src/test_success.py`) contains functions that reorder adjacency matrices based on kmeans results.
