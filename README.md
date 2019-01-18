@@ -6,7 +6,7 @@
 + [data/](./data/): Contains the data necessary for the project, such as .csv files and numpy arrays.
 + [milestones/](./milestones/): Contains the 4 milestone notebooks that were written during the semester.
 + [pictures/](./pictures/): Contains figures that were exported from our different notebooks.
-+ [src/](./src/): Contains the python code we wrote during the milestones to manipulate our data.
++ [src/](./src/): Contains the python codes we wrote during the milestones to manipulate our data, such as scripts and functions.
 
 
 ### Notebook
@@ -14,14 +14,10 @@
 The main code is in the jupyter notebook [final_project_ntds_2018.ipynb](./final_project_ntds_2018.ipynb).
 
 
-### Python scripts
+### Python functions
 
-A few functions were developped in their own function file. These functions can be found in the folder [src](./src/).
+A few functions were developped in their own function file. These functions can be found in the folder [src](./src/). The most important ones are the following:
 
-A few test scripts were also developped. To launch one of these script, from the root folder folder, use the following command : `python ./src/[name of test script]`
-
-
-+ `python ./src/connected_graph_test.py`
-+ `python ./src/shortest_path_lengths_test.py`
-+ `python ./src/network_properties.py` but for this last one, make sure that the adjacency matrix is in the [data](./data) folder under the name `adjacency.npy`
-+ `python ./src/compute_diameter_test.py`
+[load_data](./src/load_data.py`) contains multiple functions used to clean the initial dataset, create features dataframes and adjacency matrices. 
+[genre_graph](./src/genre_graph.py`) contains functions used to create graphs based on the genres of the movies.
+[test_success](./src/test_success.py`) contains functions that reorder adjacency matrices based on kmeans results
