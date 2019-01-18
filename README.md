@@ -1,4 +1,4 @@
-# NTDS - TEAM 4 - EVOLTUION OF THE MOVIE INDUSTRY
+# NTDS - TEAM 4 - EVOLUTION OF THE MOVIE INDUSTRY
 
 
 The idea of our project is to use a subset of the IMDB movie dataset, taken from Kaggle: https://www.kaggle.com/tmdb/tmdb-movie-metadata , to make an analysis of the evolution of the movie industry throughout the years. 
