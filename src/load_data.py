@@ -203,7 +203,7 @@ def make_adjacency_from_feature_matrix(features):
     np.fill_diagonal(adjacency, 0)
     
     #save the adjacency for later use
-    np.save('./data/adjacency_actors_crew', adjacency);
+    np.save('./data/adjacency_actors_crew.npy', adjacency);
     
     #We connect movies if they have at least 2 poeple in common
     adjacency[adjacency <2]=0
