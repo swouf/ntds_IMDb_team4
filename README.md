@@ -2,7 +2,7 @@
 
 ## Structure of the repository
 
-+ [/](./): contains the notebooks, this README and a compressed copy of the adjacency matrix ([adjacency.zip](./adjacency.zip)).
++ [/](./): contains the final notebook, this README and the different folders.
 + [data/](./data/): Contains the data necessary for the project, such as .csv files and numpy arrays.
 + [milestones/](./milestones/): Contains the 4 milestone notebooks that were written during the semester.
 + [pictures/](./pictures/): Contains figures that were exported from our different notebooks.
