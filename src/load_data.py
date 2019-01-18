@@ -142,9 +142,14 @@ def make_budget_based_adjacency(movies):
     np.fill_diagonal(adjacency, 0)
     n_edges=int(np.count_nonzero(adjacency)/2)
     
-
     return (adjacency,movies_filtered_by_budget)
 
+def filter_movies_window_years(movies,startyear, endyear):
+    import pandas as pd
+    #decade = 1960 + i*10
+    #decadeEnd = decade + 10
+    moviesFilteredByYears = filter_movies_by_years(movies, pd.to_datetime(f'{startyear}-01-01').date(), pd.to_datetime(f'{endyear}-01-01').date())
+    return moviesFilteredByYears
 
 def filter_movies_by_years(movies, startdate, enddate):
 
@@ -198,7 +203,7 @@ def make_adjacency_from_feature_matrix(features):
     np.fill_diagonal(adjacency, 0)
     
     #save the adjacency for later use
-    np.save('./data/adjacency_actors_crew', adjacency);
+    np.save('./data/adjacency_actors_crew.npy', adjacency);
     
     #We connect movies if they have at least 2 poeple in common
     adjacency[adjacency <2]=0

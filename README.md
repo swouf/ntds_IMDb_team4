@@ -1,4 +1,8 @@
-# ntds_IMDb_team4
+ntds_IMDb_team4
+================================================================================
+
+![License : MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)
+![version : alpha](https://img.shields.io/badge/version-final-blue.svg)
 
 ## Structure of the repository
 
